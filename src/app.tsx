@@ -2,7 +2,12 @@
 import * as THREE from 'three'
 import { useEffect, useRef, useState } from 'react'
 import { Canvas, extend, useThree, useFrame } from '@react-three/fiber'
-import { useGLTF, Environment, Lightformer } from '@react-three/drei'
+import {
+  useGLTF,
+  Environment,
+  Lightformer,
+  useTexture,
+} from '@react-three/drei'
 import {
   BallCollider,
   CuboidCollider,
@@ -12,23 +17,16 @@ import {
   useSphericalJoint,
 } from '@react-three/rapier'
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline'
-import { useControls } from 'leva'
 
 extend({ MeshLineGeometry, MeshLineMaterial })
-useGLTF.preload('/tag.glb')
+useGLTF.preload('tag.glb')
+useTexture.preload('wire.png')
 
 export default function App() {
-  const { debug } = useControls({ debug: false })
-
   return (
     <Canvas camera={{ position: [0, 0, 13], fov: 25 }}>
       <ambientLight intensity={Math.PI} />
-      <Physics
-        debug={debug}
-        interpolate
-        gravity={[0, -40, 0]}
-        timeStep={1 / 60}
-      >
+      <Physics interpolate gravity={[0, -40, 0]} timeStep={1 / 60}>
         <Band />
       </Physics>
       <Environment background blur={0.75}>
@@ -87,7 +85,8 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
     linearDamping: 2,
   }
 
-  const { nodes, materials } = useGLTF('/tag.glb')
+  const { nodes, materials } = useGLTF('tag.glb')
+  const texture = useTexture('wire.png')
 
   const { width, height } = useThree((state) => state.size)
   const [curve] = useState(
@@ -159,6 +158,7 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
   })
 
   curve.curveType = 'chordal'
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping
 
   return (
     <>
@@ -225,6 +225,7 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
           useMap
           repeat={[-3, 1]}
           lineWidth={1}
+          map={texture}
         />
       </mesh>
     </>
